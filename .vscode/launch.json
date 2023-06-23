@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "KillSoundsPluginTest",
+            "request": "launch",
+            "mainClass": "com.example.killsounds.KillSoundsPluginTest",
+            "projectName": "kill-sounds",
+            "vmArgs": "-ea",
+            "args": ["--developer-mode"]
+        }
+    ]
+}
