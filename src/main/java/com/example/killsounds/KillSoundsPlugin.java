@@ -3,6 +3,7 @@ package com.example.killsounds;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.inject.Inject;
 // audio file player imports
@@ -28,6 +29,7 @@ import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.PlayerDespawned;
+import net.runelite.api.events.SoundEffectPlayed;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.PlayerLootReceived;
@@ -44,6 +46,7 @@ public class KillSoundsPlugin extends Plugin
 
 	Integer killStreak = 0;
 	HashMap<String, Integer> killCounts = new HashMap<>();
+	List<Integer> soundIds;
 
 	@Inject
 	private Client client;
@@ -198,6 +201,15 @@ public class KillSoundsPlugin extends Plugin
 
 	}
 
+
+	@Subscribe
+	public void onSoundEffectPlayed(SoundEffectPlayed event){
+		Integer soundId = event.getSoundId();
+		
+		soundIds.add(soundId);
+		log.info("Sound effect played: " + soundId);
+	}
+
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged e)
 	{
@@ -235,30 +247,40 @@ public class KillSoundsPlugin extends Plugin
 
 		if (e.getActor() instanceof Player){
 			Player animatorActor = (Player) e.getActor();
-			int playerId = animatorActor.getId();
+			//int playerId = animatorActor.getId();
 
 			String playerName = animatorActor.getName();
-			int playerLevel = animatorActor.getCombatLevel();
+			//int playerLevel = animatorActor.getCombatLevel();
 			int animationID = animatorActor.getAnimation();
 
-			// detect if we're fighting this player
-			if (client.getLocalPlayer().getInteracting() == animatorActor)
+			// detect if we're interacting with this player
+			if (client.getLocalPlayer().getInteracting() != animatorActor)
 			{
-				log.info("Your fighting " + playerName + "!"); // This works, "Your fighting HJYJHGJTHGJY!" in chat
+				return;
+			} else{
+				log.info("You're interacting with " + playerName); // This works, "You're interacting with HJYJHGJTHGJY!" in chat
+			}
+
+			if (animatorActor.getHealthRatio() != 0) // Only look for dead animators
+			{
+				return;
+			} else{
+				log.info(playerName + " has no health!");
+			}
+
+			if (animationID != 836) // Only look for death animations
+			{
+				return;
+			} else{
+				log.info(playerName + " is animating death!");
+				log.info("soundIds list:" + soundIds.toString());
 			}
 
 			if (animationID == 836) // player death animation
 			{
 				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Death animation detected that player died: " + playerName, null);
 			}
-
-			if (animationID == 836 && client.getLocalPlayer().getInteracting() == animatorActor) // player death animation and youre attacking them
-			{
-				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Death animation detected that you killed: " + playerName, null); // This might not work if they don't attack back
-			}
 		}
-
-
 	}
 
 	@Provides
