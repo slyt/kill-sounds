@@ -1,2 +1,2 @@
 # Kill Sounds
-Add your own sounds when you get a kill.
+OSRS Runelite plugin to play custom sounds when you get a kill or kill streak.
