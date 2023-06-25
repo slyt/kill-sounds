@@ -17,6 +17,10 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonObject;
 import com.google.inject.Provides;
@@ -36,12 +40,14 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.PlayerDespawned;
 import net.runelite.api.events.SoundEffectPlayed;
+import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.PlayerLootReceived;
 import net.runelite.client.game.ItemStack;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.config.ConfigItem;
 
 @Slf4j
 @PluginDescriptor(
@@ -61,20 +67,28 @@ public class KillSoundsPlugin extends Plugin
 	@Inject
 	private KillSoundsConfig config;
 
+	@Provides // This is a Guice thing that makes it so you can use the config outside of this class
+	// Guice is a dependency injection framework for Java
+	KillSoundsConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(KillSoundsConfig.class);
+	}
+
+
 	private static final ImmutableList<String> KILL_MESSAGES = ImmutableList.of(
 		"into tiny pieces and sat on them", // You have ground <name> into tiny pieces and sat on them.
 		"you have obliterated",
 		"falls before your might",
 		"A humiliating defeat for",
-		"With a crushing blow you", 
+		"With a crushing blow you",
 		"thinking challenging you",
-		"Can anyone defeat you? Certainly", 
-		"was no match for you", 
-		"You were clearly a better fighter than", 
+		"Can anyone defeat you? Certainly",
+		"was no match for you",
+		"You were clearly a better fighter than",
 		"RIP",
-		"You have defeated", 
-		"What an embarrassing performance by", 
-		"was no match for your awesomeness", 
+		"You have defeated",
+		"What an embarrassing performance by",
+		"was no match for your awesomeness",
 		"cleaned the floor with", // You have cleaned the floor with <name>.
 		"you just killed", // Be proud of yourself - you just  killed <name>.
 		"were an orange",
@@ -84,11 +98,24 @@ public class KillSoundsPlugin extends Plugin
 		); 
 
 
-	public void playSound(String filename){
-		String filepath = "./resources/" + filename;
+	public void playSoundResource(String filepath){
 		log.info("Playing sound: " + filepath);
 		try {
 			InputStream inputStream = getClass().getResourceAsStream(filepath);
+			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(inputStream);
+			Clip clip = AudioSystem.getClip();
+			clip.open(audioInputStream);
+			clip.start();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+		public void playSoundFile(String filepath){
+		log.info("Playing sound: " + filepath);
+		try {
+			File audioFile = new File(filepath);
+			InputStream inputStream = new BufferedInputStream(new FileInputStream(audioFile)); // prevents "mark/reset not supported" error
 			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(inputStream);
 			Clip clip = AudioSystem.getClip();
 			clip.open(audioInputStream);
@@ -150,7 +177,7 @@ public class KillSoundsPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		log.info("Kill Sounds started!");
-		playSound("kill_sounds_initiated.wav");
+		playSoundResource("./resources/" + "kill_sounds_initiated.wav");
 		killBlowSounds = loadFilenames("./resources/killingBlow");
 		log.info(killBlowSounds.toString());
 	}
@@ -226,12 +253,17 @@ public class KillSoundsPlugin extends Plugin
 		if (KILL_MESSAGES.stream().anyMatch(chatMessage::contains))
 		{
 			log.info("Detected kill via chat message!: \"" + chatMessage +"\"");
-			// select random kill sound from list
-			String killBlowSound = getRandomString(killBlowSounds); // TODO: Error if empty string returned
-			playSound("killingBlow/" + killBlowSound);
-			killStreak++;
-			log.info("Killstreak +1; Total Kills: " + killStreak);
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak +1; Total Kills: " + killStreak, null);
+			
+			if (config.enableCustomSounds()){
+				playSoundFile(config.customSoundLocation().strip());
+				//playSoundFile("./resources/customSounds/you_dead.wav");
+			} else{
+				String killBlowSound = getRandomString(killBlowSounds); // TODO: Error if empty string returned
+				playSoundResource("./resources/killingBlow/" + killBlowSound);
+				killStreak++;
+				log.info("Killstreak +1; Total Kills: " + killStreak);
+				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak +1; Total Kills: " + killStreak, null);
+			}
 		}
 
 
@@ -340,7 +372,7 @@ public class KillSoundsPlugin extends Plugin
 			int animationID = animatorActor.getAnimation();
 
 			// detect if we're interacting with this player
-			if (client.getLocalPlayer().getInteracting() != animatorActor)
+			if (client.getLocalPlayer().getInteracting() != animatorActor) // TODO: Fix null pointer exception here
 			{
 				return;
 			} else{
@@ -369,9 +401,5 @@ public class KillSoundsPlugin extends Plugin
 		}
 	}
 
-	@Provides
-	KillSoundsConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(KillSoundsConfig.class);
-	}
+
 }
