@@ -30,6 +30,7 @@ import net.runelite.api.Actor;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.Hitsplat;
 import net.runelite.api.MessageNode;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.NPC;
@@ -37,6 +38,7 @@ import net.runelite.api.Player;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.PlayerDespawned;
 import net.runelite.api.events.SoundEffectPlayed;
@@ -111,7 +113,7 @@ public class KillSoundsPlugin extends Plugin
 		}
 	}
 
-		public void playSoundFile(String filepath){
+	public void playSoundFile(String filepath){
 		log.info("Playing sound: " + filepath);
 		try {
 			File audioFile = new File(filepath);
@@ -187,93 +189,17 @@ public class KillSoundsPlugin extends Plugin
 	{
 		log.info("Kill Sounds stopped!");
 	}
-
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged)
-	{
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
-		{
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "v0.0.0 Kill Sounds started", null);
-		}
-	}
-
-	@Subscribe
-	public void onPlayerDespawned(PlayerDespawned playerDespawned){
-		final Player player = playerDespawned.getPlayer();
-		//String playerName = player.getName();
-		//client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", String.format("%s has despawned", playerName), null);
-		
-		// Only care about dead Players
-		if (player.getHealthRatio() != 0)
-		{
-			return;
-		}
-
-		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", String.format("onPlayerDespawned: %s (%d) has died", player.getName(), player.getCombatLevel()), null);
 	
-		// detect if you killed the player
-		if (client.getLocalPlayer().getInteracting() == player // Your attacking the player
-		 && player.getHealthRatio() == 0) // player has 0 health
-		 {
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "You killed " + player.getName(), null);
-		}
-
-	}
 
 	@Subscribe
-	public void onNpcDespawned(NpcDespawned npcDespawned){ //detect when you kill an NPC
-		final NPC npc = npcDespawned.getNpc();
-		int id = npc.getId();
-		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", npc.getName() + " (" + id + ") despawned...", null);
+	public void onChatMessage(ChatMessage event){	
+		if (event.getType() != ChatMessageType.GAMEMESSAGE){return;} // Only look for game messages
 		
-		if (client.getLocalPlayer().getInteracting() == npc // Your attacking the player
-		 && npc.getHealthRatio() == 0) // player has 0 health
-		 {
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "You killed " + npc.getName(), null);
-		}
-
-	}
-
-	@Subscribe
-	public void onChatMessage(ChatMessage event)
-	{
-
-		// log.info("Chat message type: " + event.getType());
-		// log.info("Message: " + event.getMessage());
-		// log.info("Sender: " + event.getSender());
-		// log.info("Name: " + event.getName());
-
-		
-		if (event.getType() != ChatMessageType.GAMEMESSAGE) // Only look for game messages
-		{return;	}
-
 		String chatMessage = event.getMessage();
 		if (KILL_MESSAGES.stream().anyMatch(chatMessage::contains))
 		{
-			log.info("Detected kill via chat message!: \"" + chatMessage +"\"");
 			killStreak++;
-			log.info("Killstreak +1; Total Kills: " + killStreak);
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak +1; Total Kills: " + killStreak, null);
-		}
-	}
-
-	@Subscribe
-	public void onPlayerLootReceived(final PlayerLootReceived playerLootReceived) throws IOException { // This appears to be the preferred way to detect pvp kills
-		
-		final Player victim = playerLootReceived.getPlayer();
-		//final Collection<ItemStack> items = playerLootReceived.getItems();
-		final String victimName = victim.getName();
-		final int victimCombat = victim.getCombatLevel();
-		log.info("Detected playerLootReceived from victim " + victimName + " - level " + victimCombat);
-	
-		if (killCounts.containsKey(victimName)) {
-			Integer victimKillCount = killCounts.get(victimName);
-			victimKillCount++;
-			killCounts.put(victimName, victimKillCount);
-			log.info("You have killed " + victimName + " (" + victimCombat +") " + victimKillCount + " times!");
-		} else {
-			killCounts.put(victimName, 1);
-			log.info("You have killed " + victimName + " " + 1 + " time!");
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak: " + killStreak, null);
 		}
 	}
 
@@ -282,12 +208,10 @@ public class KillSoundsPlugin extends Plugin
 	{
 		Actor actor = actorDeath.getActor();
 
-		if (actor instanceof NPC){
-			return;
-		}
+		if (actor instanceof NPC){return;}
 		Player player = (Player) actor;
 
-		if (player == client.getLocalPlayer()){
+		if (player == client.getLocalPlayer()){ // You died
 			if (killStreak > 0){
 				log.info(killStreak + " killstreak ended!");
 				client.addChatMessage(ChatMessageType.GAMEMESSAGE,"", killStreak + " killstreak ended!", null);
@@ -299,71 +223,29 @@ public class KillSoundsPlugin extends Plugin
 
 
 	@Subscribe
-	public void onSoundEffectPlayed(SoundEffectPlayed event){
-		Integer soundId = event.getSoundId();
-		
-		soundIds.add(soundId);
-		log.info("Sound effect played: " + soundId);
-	}
+	public void onHitsplatApplied(HitsplatApplied hitsplatApplied){
+		Actor actor = hitsplatApplied.getActor();
+		Hitsplat hitsplat = hitsplatApplied.getHitsplat();
+		if (actor instanceof NPC){return;}
+		if (!hitsplat.isMine()){return;}
 
 
-	@Subscribe
-	public void onAnimationChanged(AnimationChanged e)
-	{
-		// if (!(e.getActor() instanceof  NPC) || !(e.getActor() instanceof Player)) // Only look for Player and NPC animators
-		// 	return;
-		
-		if (e.getActor() instanceof NPC){
 
-			NPC animatorActor = (NPC) e.getActor();
-			int npcId = animatorActor.getId();
-
-			String npcName = animatorActor.getName();
-			int npcLevel = animatorActor.getCombatLevel();
-			int animationID = animatorActor.getAnimation();
-
-						
-			if (npcId == -1 || animationID == -1)
-			return; // Don't bother with null NPC and idle animations
-
-			switch (animationID)
-			{
-				case 6182: // Goblin death animation
-					client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "You killed a goblin " + npcName, null);
-					break; // Apparently break statements are important in Java! Include in every case!
-				case 6183: // Gobline being attacked animation
-					client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "You attacked a goblin  " + npcName, null);
-					break;
-				case 836: // player death animation
-					client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "You killed! " + npcName, null);
-				case -1:
-					client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", " npcName: " + npcName + " npcId: " + npcId + " npcLevel: " + npcLevel + " animationID: " + animationID, null);
-					break;
-			}
+		if (hitsplat.isMine()){
+			log.info("You hit " + actor.getName() + " for " + hitsplat.getAmount() + " damage!");
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE,"", "You hit " + actor.getName() + " for " + hitsplat.getAmount() + " damage!", null);
 		}
 
-		if (e.getActor() instanceof Player){
-			Player animatorActor = (Player) e.getActor();
-			//int playerId = animatorActor.getId();
 
-			String playerName = animatorActor.getName();
-			//int playerLevel = animatorActor.getCombatLevel();
-			int animationID = animatorActor.getAnimation();
-
-			if (animationID == 836) // player death animation
-			{
-				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Death animation detected that player died: " + playerName, null);
-			}
-
-			// detect if we're interacting with this player
-			if (client.getLocalPlayer().getInteracting() == null){return;}
-			if (client.getLocalPlayer().getInteracting() != animatorActor){return;} // TODO: Fix null pointer exception here
-			log.info("You're interacting with " + playerName); // This works, "You're interacting with HJYJHGJTHGJY!" in chat
+		log.info("getHealthRatio(): " + actor.getHealthRatio());
+		log.info("getHealthScale(): " + actor.getHealthScale());
 
 
-			if (animatorActor.getHealthRatio() != 0){return;} // Only look for dead animators
-			log.info(playerName + " has no health!");
-
+		if (actor.getHealthRatio() < -1){ // This triggers when hit someone that doesn't have their HP bar displayed
+			log.info("onHitsplate: " + actor.getName() + " has no health remaining!");
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE,"", "onHitsplate: " + actor.getName() + " has no health remaining!", null);
+			
+			// Play sounds
 			if (config.enableCustomSounds()){
 				playSoundFile(config.customSoundLocation().strip());
 				//playSoundFile("./resources/customSounds/you_dead.wav");
@@ -371,13 +253,8 @@ public class KillSoundsPlugin extends Plugin
 				String killBlowSound = getRandomString(killBlowSounds); // TODO: Error if empty string returned
 				playSoundResource("./resources/killingBlow/" + killBlowSound);
 			}
-
-			if (animationID != 836){return;} // Only look for death animations
-			log.info(playerName + " is animating death!");
-			
-
+		
 		}
 	}
-
 
 }
