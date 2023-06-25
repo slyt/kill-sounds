@@ -1,9 +1,15 @@
 package com.example.killsounds;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import javax.inject.Inject;
 // audio file player imports
@@ -46,7 +52,8 @@ public class KillSoundsPlugin extends Plugin
 
 	Integer killStreak = 0;
 	HashMap<String, Integer> killCounts = new HashMap<>();
-	List<Integer> soundIds;
+	List<Integer> soundIds = new ArrayList<>();
+	List<String> killBlowSounds;
 
 	@Inject
 	private Client client;
@@ -54,25 +61,98 @@ public class KillSoundsPlugin extends Plugin
 	@Inject
 	private KillSoundsConfig config;
 
-	private static final ImmutableList<String> KILL_MESSAGES = ImmutableList.of("into tiny pieces and sat on them", "you have obliterated",
-		"falls before your might", "A humiliating defeat for", "With a crushing blow you", "thinking challenging you",
-		"Can anyone defeat you? Certainly", "was no match for you", "You were clearly a better fighter than", "RIP",
-		"You have defeated", "What an embarrassing performance by", "was no match for your awesomeness");
+	private static final ImmutableList<String> KILL_MESSAGES = ImmutableList.of(
+		"into tiny pieces and sat on them", // You have ground <name> into tiny pieces and sat on them.
+		"you have obliterated",
+		"falls before your might",
+		"A humiliating defeat for",
+		"With a crushing blow you", 
+		"thinking challenging you",
+		"Can anyone defeat you? Certainly", 
+		"was no match for you", 
+		"You were clearly a better fighter than", 
+		"RIP",
+		"You have defeated", 
+		"What an embarrassing performance by", 
+		"was no match for your awesomeness", 
+		"cleaned the floor with", // You have cleaned the floor with <name>.
+		"you just killed", // Be proud of yourself - you just  killed <name>.
+		"were an orange",
+		"have obliterated",
+		"have stomped",// You have stomped <name> into the floor and trod on him.
+		"You win," // You win, <name> loses, 'nuff said.
+		); 
 
 
-	@Override
-	protected void startUp() throws Exception
-	{
-		log.info("Kill Sounds started!");
-		// play fatality.wav
+	public void playSound(String filename){
+		String filepath = "./resources/" + filename;
+		log.info("Playing sound: " + filepath);
 		try {
-			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(this.getClass().getResourceAsStream("fatality.wav"));
+			InputStream inputStream = getClass().getResourceAsStream(filepath);
+			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(inputStream);
 			Clip clip = AudioSystem.getClip();
 			clip.open(audioInputStream);
 			clip.start();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public List<String> loadFilenames(String directoryPath) {
+        List<String> filenames = new ArrayList<>();
+
+        // try {
+            Path directory = Paths.get(directoryPath);
+
+			System.out.println("Directory path: " + directoryPath);
+    		System.out.println("Is directory? " + Files.isDirectory(directory)); // Why isn't this true?
+			// String classpath = System.getProperty("java.class.path");
+			// System.out.println("Classpath: " + classpath);
+
+
+			// hardcode filenames for from ./resoureces/killingBlow
+			filenames.add("eat_shit_and_die.wav");
+			filenames.add("fatality.wav");
+			filenames.add("get_fucked.wav");
+			filenames.add("get_wrecked.wav");
+			filenames.add("see_you_in_lumby.wav");
+
+
+            //if (Files.isDirectory(directory)) {
+                // Files.list(directory)
+                //         .filter(Files::isRegularFile)
+                //         .map(Path::getFileName)
+                //         .map(Path::toString)
+                //         .forEach(filenames::add);
+            //}
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
+
+		// print filenames to console
+		for (String filename : filenames) {
+			log.info("Filename: " + filename);
+		}
+        return filenames;
+    }
+
+	public String getRandomString(List<String> stringList) {
+        if (stringList == null || stringList.isEmpty()) {
+            return null;
+        }
+
+        Random random = new Random();
+        int randomIndex = random.nextInt(stringList.size());
+        return stringList.get(randomIndex);
+    }
+
+	@Override
+	protected void startUp() throws Exception
+	{
+		log.info("Kill Sounds started!");
+		playSound("kill_sounds_initiated.wav");
+		killBlowSounds = loadFilenames("./resources/killingBlow");
+		log.info(killBlowSounds.toString());
 	}
 
 	@Override
@@ -102,7 +182,7 @@ public class KillSoundsPlugin extends Plugin
 			return;
 		}
 
-		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", String.format("%s (%d) has died", player.getName(), player.getCombatLevel()), null);
+		client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", String.format("onPlayerDespawned: %s (%d) has died", player.getName(), player.getCombatLevel()), null);
 	
 		// detect if you killed the player
 		if (client.getLocalPlayer().getInteracting() == player // Your attacking the player
@@ -146,6 +226,12 @@ public class KillSoundsPlugin extends Plugin
 		if (KILL_MESSAGES.stream().anyMatch(chatMessage::contains))
 		{
 			log.info("Detected kill via chat message!: \"" + chatMessage +"\"");
+			// select random kill sound from list
+			String killBlowSound = getRandomString(killBlowSounds); // TODO: Error if empty string returned
+			playSound("killingBlow/" + killBlowSound);
+			killStreak++;
+			log.info("Killstreak +1; Total Kills: " + killStreak);
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak +1; Total Kills: " + killStreak, null);
 		}
 
 
@@ -169,9 +255,6 @@ public class KillSoundsPlugin extends Plugin
 		final String victimName = victim.getName();
 		final int victimCombat = victim.getCombatLevel();
 		log.info("Detected playerLootReceived from victim " + victimName + " - level " + victimCombat);
-		killStreak++;
-		log.info("Killstreak +1; Total Kills: " + killStreak);
-
 	
 		if (killCounts.containsKey(victimName)) {
 			Integer victimKillCount = killCounts.get(victimName);
@@ -195,8 +278,11 @@ public class KillSoundsPlugin extends Plugin
 		Player player = (Player) actor;
 
 		if (player == client.getLocalPlayer()){
-			log.info(killStreak + " killstreak ended!");
-			killStreak = 0;
+			if (killStreak > 0){
+				log.info(killStreak + " killstreak ended!");
+				client.addChatMessage(ChatMessageType.GAMEMESSAGE,"", killStreak + " killstreak ended!", null);
+				killStreak = 0;
+			}
 		}
 
 	}
