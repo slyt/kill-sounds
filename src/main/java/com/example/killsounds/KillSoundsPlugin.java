@@ -193,7 +193,7 @@ public class KillSoundsPlugin extends Plugin
 	{
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "v0.0.0 Kill Sounds says " + config.greeting(), null);
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "v0.0.0 Kill Sounds started", null);
 		}
 	}
 
@@ -245,38 +245,16 @@ public class KillSoundsPlugin extends Plugin
 
 		
 		if (event.getType() != ChatMessageType.GAMEMESSAGE) // Only look for game messages
-		{
-			return;
-		}
+		{return;	}
 
 		String chatMessage = event.getMessage();
 		if (KILL_MESSAGES.stream().anyMatch(chatMessage::contains))
 		{
 			log.info("Detected kill via chat message!: \"" + chatMessage +"\"");
-			
-			if (config.enableCustomSounds()){
-				playSoundFile(config.customSoundLocation().strip());
-				//playSoundFile("./resources/customSounds/you_dead.wav");
-			} else{
-				String killBlowSound = getRandomString(killBlowSounds); // TODO: Error if empty string returned
-				playSoundResource("./resources/killingBlow/" + killBlowSound);
-				killStreak++;
-				log.info("Killstreak +1; Total Kills: " + killStreak);
-				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak +1; Total Kills: " + killStreak, null);
-			}
+			killStreak++;
+			log.info("Killstreak +1; Total Kills: " + killStreak);
+			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak +1; Total Kills: " + killStreak, null);
 		}
-
-
-		// TODO: make regex to detect all kill messages
-		// String killMessage = "You win, Fuungi724 loses, 'nuff said.";
-		// if (event.getType() == ChatMessageType.GAMEMESSAGE && event.getMessage().contains(killMessage)){
-		// 	client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Chat message detected!", null);
-		// }
-		
-
-		// if (event.getMessage().contains("You have defeated")){
-		// 	client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Chat message detected that you killed someone!", null);
-		// }
 	}
 
 	@Subscribe
@@ -328,6 +306,7 @@ public class KillSoundsPlugin extends Plugin
 		log.info("Sound effect played: " + soundId);
 	}
 
+
 	@Subscribe
 	public void onAnimationChanged(AnimationChanged e)
 	{
@@ -371,33 +350,32 @@ public class KillSoundsPlugin extends Plugin
 			//int playerLevel = animatorActor.getCombatLevel();
 			int animationID = animatorActor.getAnimation();
 
-			// detect if we're interacting with this player
-			if (client.getLocalPlayer().getInteracting() != animatorActor) // TODO: Fix null pointer exception here
-			{
-				return;
-			} else{
-				log.info("You're interacting with " + playerName); // This works, "You're interacting with HJYJHGJTHGJY!" in chat
-			}
-
-			if (animatorActor.getHealthRatio() != 0) // Only look for dead animators
-			{
-				return;
-			} else{
-				log.info(playerName + " has no health!");
-			}
-
-			if (animationID != 836) // Only look for death animations
-			{
-				return;
-			} else{
-				log.info(playerName + " is animating death!");
-				log.info("soundIds list:" + soundIds.toString());
-			}
-
 			if (animationID == 836) // player death animation
 			{
 				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Death animation detected that player died: " + playerName, null);
 			}
+
+			// detect if we're interacting with this player
+			if (client.getLocalPlayer().getInteracting() == null){return;}
+			if (client.getLocalPlayer().getInteracting() != animatorActor){return;} // TODO: Fix null pointer exception here
+			log.info("You're interacting with " + playerName); // This works, "You're interacting with HJYJHGJTHGJY!" in chat
+
+
+			if (animatorActor.getHealthRatio() != 0){return;} // Only look for dead animators
+			log.info(playerName + " has no health!");
+
+			if (config.enableCustomSounds()){
+				playSoundFile(config.customSoundLocation().strip());
+				//playSoundFile("./resources/customSounds/you_dead.wav");
+			}else{	
+				String killBlowSound = getRandomString(killBlowSounds); // TODO: Error if empty string returned
+				playSoundResource("./resources/killingBlow/" + killBlowSound);
+			}
+
+			if (animationID != 836){return;} // Only look for death animations
+			log.info(playerName + " is animating death!");
+			
+
 		}
 	}
 
