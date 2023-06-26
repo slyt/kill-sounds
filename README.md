@@ -4,7 +4,7 @@ OSRS Runelite plugin to play custom sounds when you kill another player.
 ### Features
 - Plays audio when you kill another player
 - Ability to add your own `.wav` audio files (`.mp3` not supported)
-- Tracks killstreaks and displays as messages
+- Tracks killstreaks and displays as messages Killstreaks reset on death or plugin restart.
 
 ![alt text](kill_sounds_config.png "kill sounds config screenshot")
 
