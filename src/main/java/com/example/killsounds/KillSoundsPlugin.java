@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.inject.Inject;
@@ -62,6 +63,8 @@ public class KillSoundsPlugin extends Plugin
 	HashMap<String, Integer> killCounts = new HashMap<>();
 	List<Integer> soundIds = new ArrayList<>();
 	List<String> killBlowSounds;
+	HashMap<String, Long> lastHitTimeMap = new HashMap<>();
+
 
 	@Inject
 	private Client client;
@@ -221,40 +224,48 @@ public class KillSoundsPlugin extends Plugin
 
 	}
 
-
 	@Subscribe
 	public void onHitsplatApplied(HitsplatApplied hitsplatApplied){
 		Actor actor = hitsplatApplied.getActor();
 		Hitsplat hitsplat = hitsplatApplied.getHitsplat();
-		if (actor instanceof NPC){return;}
-		if (!hitsplat.isMine()){return;}
+		if (actor instanceof NPC){return;} 				// Only consider damage from players
+		if (!hitsplat.isMine()){return;} 				// Only consider damage from player
+		if (actor == client.getLocalPlayer()){return;} 	// Don't count hitsplats on yourself
 
+		// Add play to hashmap so that we can check if we've dealt damage to this player recently
+		String playerName = actor.getName();
+		lastHitTimeMap.put(playerName, System.currentTimeMillis());
+	}
 
-
-		if (hitsplat.isMine()){
-			log.info("You hit " + actor.getName() + " for " + hitsplat.getAmount() + " damage!");
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE,"", "You hit " + actor.getName() + " for " + hitsplat.getAmount() + " damage!", null);
-		}
-
-
-		log.info("getHealthRatio(): " + actor.getHealthRatio());
-		log.info("getHealthScale(): " + actor.getHealthScale());
-
-
-		if (actor.getHealthRatio() < -1){ // This triggers when hit someone that doesn't have their HP bar displayed
-			log.info("onHitsplate: " + actor.getName() + " has no health remaining!");
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE,"", "onHitsplate: " + actor.getName() + " has no health remaining!", null);
+	@Subscribe
+	public void onAnimationChanged(AnimationChanged e){
+		if (!(e.getActor() instanceof Player)){return;} // Only care about Players
 			
-			// Play sounds
-			if (config.enableCustomSounds()){
-				playSoundFile(config.customSoundLocation().strip());
-				//playSoundFile("./resources/customSounds/you_dead.wav");
-			}else{	
-				String killBlowSound = getRandomString(killBlowSounds); // TODO: Error if empty string returned
-				playSoundResource("./resources/killingBlow/" + killBlowSound);
+			Player animatorActor = (Player) e.getActor();
+			int animationID = animatorActor.getAnimation();
+			if (animationID != 836){return;} // Only play sound for death animations
+			
+			
+			String playerName = animatorActor.getName();
+			if(!lastHitTimeMap.containsKey(playerName)){return;} // We've never hit this player
+
+
+			long lastHitTime = lastHitTimeMap.get(playerName);
+			long currentTime = System.currentTimeMillis();
+			long timeSinceLastHit = currentTime - lastHitTime;
+			// Print time of last hit in seconds, e.g. 3.5s and include playerName
+			log.info("You last hit " + playerName +" " +  timeSinceLastHit/1000.0 + " seconds ago");
+
+			if (timeSinceLastHit < 5000){ // If we've dealt damage to this player in the last 5 seconds
+				// Play sounds
+				if (config.enableCustomSounds()){
+					playSoundFile(config.customSoundLocation().strip());
+					//playSoundFile("./resources/customSounds/you_dead.wav");
+				}else{	
+					String killBlowSound = getRandomString(killBlowSounds); // TODO: Errors if empty string returned
+					playSoundResource("./resources/killingBlow/" + killBlowSound);
 			}
-		
-		}
+			}
 	}
 
 }
