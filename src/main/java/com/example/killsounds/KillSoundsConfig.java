@@ -14,7 +14,7 @@ public interface KillSoundsConfig extends Config
 		description = "Aboslute path to custom sound directory. Directory must contain .wav filetypes."
 	)default String customSoundLocation()
 	{
-		return "./resources/customSounds/";
+		return "/path/to/custom/wav/files/";
 	}
 
 	@ConfigItem(
