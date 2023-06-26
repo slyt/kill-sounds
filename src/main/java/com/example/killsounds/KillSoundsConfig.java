@@ -10,8 +10,8 @@ public interface KillSoundsConfig extends Config
 
 	@ConfigItem(
 		keyName = "customSoundLocation",
-		name = "Custom Sound Location",
-		description = "Aboslute path to custom sound file(s)"
+		name = "Custom Sound Directory",
+		description = "Aboslute path to custom sound directory. Directory must contain .wav filetypes."
 	)default String customSoundLocation()
 	{
 		return "./resources/customSounds/";
@@ -26,5 +26,22 @@ public interface KillSoundsConfig extends Config
 		return false;
 	}
 
+	@ConfigItem(
+		keyName = "enableAudioGreeting",
+		name = "Play audio greeting",
+		description = "If checked, play the \"Kill sounds initiated!\" sound when the plugin is started."
+	)default boolean enableAudioGreeting()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "enableKillstreakMessages",
+		name = "Enable killstreak messages",
+		description = "If checked, show killstreak count in chat"
+	)default boolean enableKillstreakMessages()
+	{
+		return false;
+	}
 
 }
