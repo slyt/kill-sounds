@@ -55,7 +55,7 @@ public interface KillSoundsConfig extends Config
 		section = killstreakSection
 	)default boolean enableKillstreakMessages()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(
