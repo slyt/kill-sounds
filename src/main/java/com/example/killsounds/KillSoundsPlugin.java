@@ -183,6 +183,24 @@ public class KillSoundsPlugin extends Plugin
 			if (config.enableKillstreakMessages()){
 				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak: " + killStreak, null);
 			}
+
+			if (config.muteKillstreakSounds()){return;}
+
+			String killstreakDirectory = "./resources/killstreakSounds/";
+			if (killStreak == config.killstreak1Threshold()){
+				playSoundResource(killstreakDirectory + "1_killing_spree.wav");
+			}else if (killStreak == config.killstreak2Threshold()){
+				playSoundResource(killstreakDirectory + "2_rampage.wav");
+			}else if (killStreak == config.killstreak3Threshold()){
+				playSoundResource(killstreakDirectory + "3_unstoppable.wav");
+			}else if (killStreak == config.killstreak4Threshold()){
+				playSoundResource(killstreakDirectory + "4_dominating.wav");
+			}else if (killStreak == config.killstreak5Threshold()){
+				playSoundResource(killstreakDirectory + "5_godlike.wav");
+			}else if (killStreak == config.killstreak6Threshold()){
+				playSoundResource(killstreakDirectory + "6_legendary.wav");
+			}else{return;}
+
 		}
 	}
 
