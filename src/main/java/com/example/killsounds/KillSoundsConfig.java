@@ -58,6 +58,7 @@ public interface KillSoundsConfig extends Config
 		return true;
 	}
 
+
 	@ConfigItem(
 		keyName = "muteKillstreakSounds",
 		name = "Mute killstreak sounds",

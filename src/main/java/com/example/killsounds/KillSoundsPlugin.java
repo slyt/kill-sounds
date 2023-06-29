@@ -128,7 +128,11 @@ public class KillSoundsPlugin extends Plugin
         List<String> filenames = new ArrayList<>();
 		File directory = new File(directoryPath);
 
-		if (directory.exists() && directory.isDirectory()) {
+		if (!directory.exists()) {
+			return filenames;
+		}
+
+		if (directory.isDirectory()) {
             File[] files = directory.listFiles();
 
             if (files != null) {
@@ -139,6 +143,10 @@ public class KillSoundsPlugin extends Plugin
                 }
             }
         }
+		else if(directory.isFile() && directory.getName().toLowerCase().endsWith(".wav")){ // Handle condition that the user configured a single file instead of a filepath
+			filenames.add(directory.getAbsolutePath());
+		}
+
 		return filenames;
 
     }
@@ -184,21 +192,61 @@ public class KillSoundsPlugin extends Plugin
 				client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Killstreak: " + killStreak, null);
 			}
 
-			if (config.muteKillstreakSounds()){return;}
+			if (config.muteKillstreakSounds()){return;} // Don't play sounds if they are muted
 
+			
+
+			// Play sounds below dependent on killstreak
 			String killstreakDirectory = "./resources/killstreakSounds/";
 			if (killStreak == config.killstreak1Threshold()){
-				playSoundResource(killstreakDirectory + "1_killing_spree.wav");
+				// if we can't find the file or directory, then play default sound
+				List<String> customSoundLocation = loadCustomKillingBlowSounds(config.killstreak1SoundLocation());
+				if (customSoundLocation.size() > 0){
+					String killstreak1Sound = getRandomString(customSoundLocation);
+					playSoundFile(killstreak1Sound);
+				}else{
+					playSoundResource(killstreakDirectory + "1_killing_spree.wav");
+				}
 			}else if (killStreak == config.killstreak2Threshold()){
-				playSoundResource(killstreakDirectory + "2_rampage.wav");
+				List<String> customSoundLocation = loadCustomKillingBlowSounds(config.killstreak2SoundLocation());
+				if (customSoundLocation.size() > 0){
+					String killstreak1Sound = getRandomString(customSoundLocation);
+					playSoundFile(killstreak1Sound);
+				}else{
+					playSoundResource(killstreakDirectory + "2_rampage.wav");
+				}
 			}else if (killStreak == config.killstreak3Threshold()){
-				playSoundResource(killstreakDirectory + "3_unstoppable.wav");
+				List<String> customSoundLocation = loadCustomKillingBlowSounds(config.killstreak3SoundLocation());
+				if (customSoundLocation.size() > 0){
+					String killstreak1Sound = getRandomString(customSoundLocation);
+					playSoundFile(killstreak1Sound);
+				}else{
+					playSoundResource(killstreakDirectory + "3_unstoppable.wav");
+				}
 			}else if (killStreak == config.killstreak4Threshold()){
-				playSoundResource(killstreakDirectory + "4_dominating.wav");
+				List<String> customSoundLocation = loadCustomKillingBlowSounds(config.killstreak4SoundLocation());
+				if (customSoundLocation.size() > 0){
+					String killstreak1Sound = getRandomString(customSoundLocation);
+					playSoundFile(killstreak1Sound);
+				}else{
+					playSoundResource(killstreakDirectory + "4_dominating.wav");
+				}
 			}else if (killStreak == config.killstreak5Threshold()){
-				playSoundResource(killstreakDirectory + "5_godlike.wav");
+				List<String> customSoundLocation = loadCustomKillingBlowSounds(config.killstreak5SoundLocation());
+				if (customSoundLocation.size() > 0){
+					String killstreak1Sound = getRandomString(customSoundLocation);
+					playSoundFile(killstreak1Sound);
+				}else{
+					playSoundResource(killstreakDirectory + "5_godlike.wav");
+				}
 			}else if (killStreak == config.killstreak6Threshold()){
-				playSoundResource(killstreakDirectory + "6_legendary.wav");
+				List<String> customSoundLocation = loadCustomKillingBlowSounds(config.killstreak6SoundLocation());
+				if (customSoundLocation.size() > 0){
+					String killstreak1Sound = getRandomString(customSoundLocation);
+					playSoundFile(killstreak1Sound);
+				}else{
+					playSoundResource(killstreakDirectory + "6_legendary.wav");
+				}
 			}else{return;}
 
 		}
