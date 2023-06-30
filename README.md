@@ -23,7 +23,7 @@ Linux example:
 
 If the path points to a directory, the `.wav` audio files in that directory will be played at random. If the path is invalid or no `.wav` files are found, then the default sounds included with the plugin are played.
 
-![alt text](kill_sounds_config.png "kill sounds config screenshot")
+![alt text](pvp-kill-sounds-config.png "PvP Kill Sounds plugin config screenshot")
 
 ### How sound is triggered
 Due to limitations in Runelite API, it's tricky to detect when you kill another player. Ideally the audio would trigger the instant that you detect the victim has died.
