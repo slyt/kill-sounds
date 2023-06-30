@@ -290,35 +290,33 @@ public class KillSoundsPlugin extends Plugin
 	public void onAnimationChanged(AnimationChanged e){
 		if (!(e.getActor() instanceof Player)){return;} // Only care about Players
 			
-			Player animatorActor = (Player) e.getActor();
-			int animationID = animatorActor.getAnimation();
-			if (animationID != 836){return;} // Only play sound for death animations
-			
-			
-			String playerName = animatorActor.getName();
-			if(!lastHitTimeMap.containsKey(playerName)){return;} // We've never hit this player
+		Player animatorActor = (Player) e.getActor();
+		int animationID = animatorActor.getAnimation();
+		if (animationID != 836){return;} // Only play sound for death animations
+		
+		
+		String playerName = animatorActor.getName();
+		if(!lastHitTimeMap.containsKey(playerName)){return;} // We've never hit this player
 
 
-			long lastHitTime = lastHitTimeMap.get(playerName);
-			long currentTime = System.currentTimeMillis();
-			long timeSinceLastHit = currentTime - lastHitTime;
-			// Print time of last hit in seconds, e.g. 3.5s and include playerName
-			log.debug("You last hit " + playerName +" " +  timeSinceLastHit/1000.0 + " seconds ago");
+		long lastHitTime = lastHitTimeMap.get(playerName);
+		long currentTime = System.currentTimeMillis();
+		long timeSinceLastHit = currentTime - lastHitTime;
+		// Print time of last hit in seconds, e.g. 3.5s and include playerName
+		log.debug("You last hit " + playerName +" " +  timeSinceLastHit/1000.0 + " seconds ago");
 
-			if (timeSinceLastHit < 5000){ // If we've dealt damage to this player in the last 5 seconds
-				
-				// Play sounds
-				if (config.enableCustomSounds()){
-					if (config.customSoundLocation().strip().equals("")){return;}
-					customSoundLocation = config.customSoundLocation();
-					List<String> customKillingBlowSounds = loadCustomKillingBlowSounds(customSoundLocation);
-					String killBlowSound = getRandomString(customKillingBlowSounds);
-					playSoundFile(killBlowSound);
-				}else{	// Use default sounds
-					String killBlowSound = getRandomString(defaultKillingBlowSounds); // TODO: Errors if empty string returned
-					playSoundResource(killBlowSound);
-				}
-			}
+		if (timeSinceLastHit > 5000){return;}  // Play sound if we've dealt damage to this player in the last 5 seconds and they're dying
+
+		if (config.muteKillSounds()){return;} // Don't play sounds if they are muted
+		// Play sounds
+		List<String> customKillingBlowSounds = loadCustomKillingBlowSounds(config.customSoundLocation());
+		if (customKillingBlowSounds.size() > 0){
+			String killingBlowSound = getRandomString(customKillingBlowSounds);
+			playSoundFile(killingBlowSound);
+		}else{
+			String killBlowSound = getRandomString(defaultKillingBlowSounds); // TODO: Errors if empty string returned
+			playSoundResource(killBlowSound);
+		}
 	}
 
 }

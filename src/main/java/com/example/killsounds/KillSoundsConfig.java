@@ -1,6 +1,5 @@
 package com.example.killsounds;
 
-import javax.swing.text.Position;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
@@ -13,7 +12,7 @@ public interface KillSoundsConfig extends Config
 
 	@ConfigItem(
 		keyName = "customSoundLocation",
-		name = "Custom kill sound directory",
+		name = "Custom kill sound location",
 		description = "Aboslute path to custom sound directory. Directory must contain .wav filetypes. If there are multiple sound files in the directory, then one will be played at random during a kill in PvP.",
 		position = 15
 	)default String customSoundLocation()
@@ -21,12 +20,13 @@ public interface KillSoundsConfig extends Config
 		return "/path/to/custom/wav/files/";
 	}
 
+
 	@ConfigItem(
-		keyName = "enableCustomSounds",
-		name = "Use custom kill sounds",
-		description = "If checked, are random sound is played from the directory provided instead of the default sounds after a kill in PvP.",
-		position = 10
-	)default boolean enableCustomSounds()
+		keyName = "muteKillSounds",
+		name = "Mute kill sounds",
+		description = "If checked, don't play sounds when a kill is made in PvP.",
+		position = 12
+	)default boolean muteKillSounds()
 	{
 		return false;
 	}
@@ -62,7 +62,7 @@ public interface KillSoundsConfig extends Config
 	@ConfigItem(
 		keyName = "muteKillstreakSounds",
 		name = "Mute killstreak sounds",
-		description = "If checked, show killstreak count in chat",
+		description = "If checked, sounds are not played during killstreaks in PvP.",
 		position = 55,
 		section = killstreakSection
 	)default boolean muteKillstreakSounds()
@@ -83,7 +83,7 @@ public interface KillSoundsConfig extends Config
 
 	@ConfigItem(
 		keyName = "killstreak1SoundLocation",
-		name = "Killstreak 1 Sound Location",
+		name = "Killstreak 1 sound location",
 		description = "Aboslute path to a .wav file.",
 		position = 65,
 		section = killstreakSection
@@ -105,7 +105,7 @@ public interface KillSoundsConfig extends Config
 
 	@ConfigItem(
 		keyName = "killstreak2SoundLocation",
-		name = "Killstreak 2 Sound Location",
+		name = "Killstreak 2 sound location",
 		description = "Aboslute path to a .wav file.",
 		position = 75,
 		section = killstreakSection
@@ -127,7 +127,7 @@ public interface KillSoundsConfig extends Config
 
 	@ConfigItem(
 		keyName = "killstreak3SoundLocation",
-		name = "Killstreak 3 Sound Location",
+		name = "Killstreak 3 sound location",
 		description = "Aboslute path to a .wav file.",
 		position = 85,
 		section = killstreakSection
@@ -149,7 +149,7 @@ public interface KillSoundsConfig extends Config
 
 	@ConfigItem(
 		keyName = "killstreak4SoundLocation",
-		name = "Killstreak 4 Sound Location",
+		name = "Killstreak 4 sound location",
 		description = "Aboslute path to a .wav file.",
 		position = 95,
 		section = killstreakSection
@@ -171,7 +171,7 @@ public interface KillSoundsConfig extends Config
 
 	@ConfigItem(
 		keyName = "killstreak5SoundLocation",
-		name = "Killstreak 5 Sound Location",
+		name = "Killstreak 5 sound location",
 		description = "Aboslute path to a .wav file.",
 		position = 105,
 		section = killstreakSection
@@ -193,7 +193,7 @@ public interface KillSoundsConfig extends Config
 
 	@ConfigItem(
 		keyName = "killstreak6SoundLocation",
-		name = "Killstreak 6 Sound Location",
+		name = "Killstreak 6 sound location",
 		description = "Aboslute path to a .wav file.",
 		position = 115,
 		section = killstreakSection
