@@ -8,7 +8,7 @@ Like this addon? [Buy me a ~~beer~~ Asgarnian Ale](https://www.buymeacoffee.com/
 - Play audio when reaching a configurable killstreak threshold.
 - Ability to add your own `.wav` audio files (`.mp3` not supported).
 - Tracks killstreaks and displays as messages. Killstreaks reset on death or plugin restart.
-- Master volume control so you can fine tune it to fit game audio levels.
+- Master volume control so you can fine tune sounds to fit game audio levels.
 
 When configuring the path to custom sounds, you can either pass in a path to a directory or a single file.
 
