@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 
 import java.io.InputStream;
 import java.io.BufferedInputStream;
@@ -95,6 +96,16 @@ public class KillSoundsPlugin extends Plugin
 			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(inputStream);
 			Clip clip = AudioSystem.getClip();
 			clip.open(audioInputStream);
+
+			// Adjust the volume
+			FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+			float volume = (float) config.volumeAmount() / 100.0f; // Set the volume level here (0.0 to 1.0)
+			float minVolume = gainControl.getMinimum();
+			float maxVolume = gainControl.getMaximum();
+			float range = maxVolume - minVolume;
+			float gain = (range * volume) + minVolume;
+			gainControl.setValue(gain);
+
 			clip.start();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -109,6 +120,16 @@ public class KillSoundsPlugin extends Plugin
 			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(inputStream);
 			Clip clip = AudioSystem.getClip();
 			clip.open(audioInputStream);
+
+			// Adjust the volume
+			FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+			float volume = (float) config.volumeAmount() / 100.0f; // Set the volume level here (0.0 to 1.0)
+			float minVolume = gainControl.getMinimum();
+			float maxVolume = gainControl.getMaximum();
+			float range = maxVolume - minVolume;
+			float gain = (range * volume) + minVolume;
+			gainControl.setValue(gain);
+
 			clip.start();
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -4,6 +4,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
 
 @ConfigGroup("killsounds")
 public interface KillSoundsConfig extends Config
@@ -30,10 +31,25 @@ public interface KillSoundsConfig extends Config
 		return false;
 	}
 
+	@Range(
+		min = 0,
+		max = 100
+	)
+	@ConfigItem(
+		keyName = "volumeAmount",
+		name = "Master Volume",
+		description = "How loud to play kill and killstreak souds.",
+		position = 2
+	)default int volumeAmount()
+	{
+		return 75;
+	}
+
 	@ConfigItem(
 		keyName = "enableAudioGreeting",
 		name = "Play audio greeting",
-		description = "If checked, play the \"Kill sounds initiated!\" sound when the plugin is started."
+		description = "If checked, play the \"Kill sounds initiated!\" sound when the plugin is started.",
+		position = 5
 	)default boolean enableAudioGreeting()
 	{
 		return false;
