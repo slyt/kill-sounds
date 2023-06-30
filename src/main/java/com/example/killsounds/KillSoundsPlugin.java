@@ -38,7 +38,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Kill Sounds"
+	name = "PvP Kill Sounds"
 )
 public class KillSoundsPlugin extends Plugin
 {
