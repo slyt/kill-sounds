@@ -1,10 +1,13 @@
-# Kill Sounds
-OSRS Runelite plugin to play custom sounds when you kill another player.
+# PvP Kill Sounds
+OSRS Runelite plugin to play custom sounds when you kill another player in PvP.
 
 ### Features
-- Plays audio when you kill another player
-- Ability to add your own `.wav` audio files (`.mp3` not supported)
+- Play audio when you kill another player.
+- Play audio when reaching a configurable killstreak threshold.
+- Ability to add your own `.wav` audio files (`.mp3` not supported). For example `C:\Users\Durial123\Desktop\custom kill sounds\` on Windows or `/home/Durial123/Desktop/custom-kill-sounds/` on Linux.
 - Tracks killstreaks and displays as messages. Killstreaks reset on death or plugin restart.
+
+When configuring the path to custom sounds, you can either pass in a path to a directory or a single file. If the path points to a directory, the `.wav` audio files in that directory will be played at random. If the path is invalid or no `.wav` files are found, then the default sounds included with the plugin are played.
 
 ![alt text](kill_sounds_config.png "kill sounds config screenshot")
 
